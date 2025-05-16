@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dodge the Squares</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { background: #222; border: 2px solid #fff; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let player = {
+      x: 180,
+      y: 550,
+      width: 40,
+      height: 40,
+      speed: 5
+    };
+
+    let obstacles = [];
+    let score = 0;
+    let gameOver = false;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && player.x > 0) {
+        player.x -= player.speed;
+      } else if (e.key === "ArrowRight" && player.x + player.width < canvas.width) {
+        player.x += player.speed;
+      }
+    });
+
+    function drawPlayer() {
+      ctx.fillStyle = "deepskyblue";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawObstacles() {
+      ctx.fillStyle = "tomato";
+      obstacles.forEach(obs => {
+        ctx.fillRect(obs.x, obs.y, obs.size, obs.size);
+        obs.y += obs.speed;
+
+        // Collision detection
+        if (
+          obs.y + obs.size >= player.y &&
+          obs.x < player.x + player.width &&
+          obs.x + obs.size > player.x
+        ) {
+          gameOver = true;
+        }
+
+        // Remove off-screen and add score
+        if (obs.y > canvas.height) {
+          score++;
+          obstacles.splice(obstacles.indexOf(obs), 1);
+        }
+      });
+    }
+
+    function spawnObstacle() {
+      const size = 30;
+      const x = Math.random() * (canvas.width - size);
+      obstacles.push({ x, y: -size, size, speed: 4 });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "#fff";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 25);
+    }
+
+    function loop() {
+      if (gameOver) {
+        ctx.fillStyle = "#fff";
+        ctx.font = "30px Arial";
+        ctx.fillText("Game Over!", 120, 300);
+        ctx.fillText("Score: " + score, 140, 350);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawObstacles();
+      drawScore();
+
+      requestAnimationFrame(loop);
+    }
+
+    setInterval(spawnObstacle, 1000);
+    loop();
+  </script>
+</body>
+</html>
